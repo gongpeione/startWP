@@ -28,15 +28,40 @@
             wp_deregister_script( 'jquery' );
             wp_register_script( 'jquery', 'http://lib.sinaapp.com/js/jquery/1.7.2/jquery.min.js', array(), '1.7.2', false );
             wp_enqueue_script( 'jquery' );
-            wp_register_script( 'slimbox', bloginfo('template_url') . '/geeku_framework/js/slimbox.js', array(), '0', false );
-            wp_enqueue_script( 'slimbox' );
-             wp_register_script( 'main', bloginfo('template_url') . '/js/main.js', array(), '0', false );
-            wp_enqueue_script( 'main' );
-            // 注册并加载 jquery-bxSlider 样式表
-            
+            wp_register_script( 'lazyload', bloginfo('template_url') . '/geeku_framework/js/lazyload.js', array(), '0', false );
+            wp_enqueue_script( 'lazyload' );
+            wp_register_script( 'slimbox', bloginfo('template_url') . '/geeku_framework/js/lazyload.js', array(), '0', false );
+            wp_enqueue_script( 'slimbox' );        
         } 
     }
     add_action( 'init', 'geeku_enqueue_scripts' );
+
+/*--------------- [ Lazyload ] -----------------*/
+
+    /* codeFrom: http://www.tedlife.com/wordpress_zheng_que_de_shi_yong_jquery_lazyload_js.html*/
+    add_filter('the_content', 'lazyload_filter_the_content');
+    add_filter('wp_get_attachment_link', 'lazyload_filter_the_content');
+    function lazyload_filter_the_content($content) 
+    {
+      if (is_feed() || is_robots()|| is_preview() || ( function_exists( 'is_mobile' ) && is_mobile() )) 
+        return $content;
+      
+      return preg_replace_callback('/(< \s*img[^>]+)(src\s*=\s*"[^"]+")([^>]+>)/i', lazyload_preg_replace_callback, $content);
+    }
+
+    function lazyload_preg_replace_callback($matches) 
+    {
+        if (!preg_match('/class\s*=\s*"/i', $matches[0])) 
+        {
+          $class_attr = 'class="" ';
+        }
+        $replacement = $matches[1] . $class_attr . 'src="' . get_template_directory_uri() . '/images/grey.gif" data-original' . substr($matches[2], 3) . $matches[3];
+
+        $replacement = preg_replace('/class\s*=\s*"/i', 'class="lazy ', $replacement);
+
+        $replacement .= '<noscript>' . $matches[0] . '</noscript>';
+        return $replacement;
+    }
 
 /*---------------- [ PostView ]------------------*/
 
